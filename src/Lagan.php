@@ -32,8 +32,8 @@ class Lagan {
 	 */
 	protected function universalCreate() {
 	
-		$bean = R::dispense($this->type);
-		$bean->created = R::isoDateTime();
+		$bean = \R::dispense($this->type);
+		$bean->created = \R::isoDateTime();
 		
 		return $bean;
 
@@ -111,8 +111,8 @@ class Lagan {
 
 		}
 
-		$bean->modified = R::isoDateTime();
-		R::store($bean);
+		$bean->modified = \R::isoDateTime();
+		\R::store($bean);
 
 		return $bean;
 
@@ -161,7 +161,7 @@ class Lagan {
 		if ( $value ) {
 
 			// Single bean
-			$bean = R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
+			$bean = \R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
 			if ( !$bean ) {
 				throw new Exception('This '.$this->type.' does not exist.');
 			}
@@ -190,7 +190,7 @@ class Lagan {
 					$add_to_query = $property['name'].' ASC, ';
 				}
 			}
-			return R::findAll( $this->type, ' ORDER BY '.$add_to_query.'title ASC ');
+			return \R::findAll( $this->type, ' ORDER BY '.$add_to_query.'title ASC ');
 
 		}
 
@@ -208,7 +208,7 @@ class Lagan {
 	 */
 	public function update($data, $id) {
 
-		$bean = R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
+		$bean = \R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
 		if ( !$bean ) {
 			throw new Exception('This '.$this->type.' does not exist.');
 		}
@@ -225,7 +225,7 @@ class Lagan {
 	 */
 	public function delete($id) {
 
-		$bean = R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
+		$bean = \R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
 		if ( !$bean ) {
 			throw new Exception('This '.$this->type.' does not exist.');
 		}
@@ -241,7 +241,7 @@ class Lagan {
 
 		}
 
-		R::trash( $bean );
+		\R::trash( $bean );
 
 	}
 
@@ -264,7 +264,7 @@ class Lagan {
 
 		if ( $value ) {
 
-			$bean = R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
+			$bean = \R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
 			if ( !$bean ) {
 				throw new Exception('This '.$this->type.' does not exist.');
 			}

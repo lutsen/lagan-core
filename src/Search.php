@@ -152,7 +152,7 @@ class Search {
 			$sort = ' ORDER BY ' . implode(', ', $s);
 		}
 
-		return R::find( $this->type, $query.$sort, $values );
+		return \R::find( $this->type, $query.$sort, $values );
 
 	}
 
