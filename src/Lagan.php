@@ -100,7 +100,7 @@ class Lagan {
 
 			// Check if proerty is required
 			if ( $property['required'] && !$hasvalue ) {
-				throw new Exception('Validation error. '.$property['description'].' is required.');
+				throw new \Exception('Validation error. '.$property['description'].' is required.');
 			}
 
 			// Results from methods that return boolean values are not stored.
@@ -140,7 +140,7 @@ class Lagan {
 		} catch (Exception $e) {
 			// Delete bean
 			$this->delete($bean->id);
-			throw new Exception( $e->getMessage() );
+			throw new \Exception( $e->getMessage() );
 		}
 
 	}
@@ -163,7 +163,7 @@ class Lagan {
 			// Single bean
 			$bean = \R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
 			if ( !$bean ) {
-				throw new Exception('This '.$this->type.' does not exist.');
+				throw new \Exception('This '.$this->type.' does not exist.');
 			}
 
 			// Check for property type specific read methods
@@ -210,7 +210,7 @@ class Lagan {
 
 		$bean = \R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
 		if ( !$bean ) {
-			throw new Exception('This '.$this->type.' does not exist.');
+			throw new \Exception('This '.$this->type.' does not exist.');
 		}
 		return $this->set($data, $bean);
 
@@ -227,7 +227,7 @@ class Lagan {
 
 		$bean = \R::findOne( $this->type, ' id = :id ', [ ':id' => $id ] );
 		if ( !$bean ) {
-			throw new Exception('This '.$this->type.' does not exist.');
+			throw new \Exception('This '.$this->type.' does not exist.');
 		}
 
 		// Check for property type specific delete methods
@@ -266,7 +266,7 @@ class Lagan {
 
 			$bean = \R::findOne( $this->type, $property_name.' = :value ', [ ':value' => $value ] );
 			if ( !$bean ) {
-				throw new Exception('This '.$this->type.' does not exist.');
+				throw new \Exception('This '.$this->type.' does not exist.');
 			}
 
 		} else {
