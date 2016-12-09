@@ -159,8 +159,6 @@ class Search {
 			$query = '(' . implode(') AND (', $q) . ')';
 		} else if (count($q) > 0) {
 			$query = $q[0];
-		} else {
-			return false;
 		}
 
 		// Implode different sort arrays
