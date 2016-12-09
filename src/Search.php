@@ -8,17 +8,22 @@ namespace Lagan;
  * We use "*" as the seperator, since "-" is in the slug, and "+" is filtered out of the $_GET variable name by PHP.
  *
  * Syntax:
- * From: *min
- * To: *max
+ * Value from: *min
+ * Value to: *max
  * Contains: *has
  * Equal to: *is
  * Sort: sort
+ * Limit: length
+ * Offset: start
+ *
+ * start only works if length is defined too
  *
  * Query structure examples:
  * [model]?*has=[search string] :				Searches all searchable properties of a model
  * [model]?[property]*has=[search string] :		Searches single property of a model
  * [model]?[property]*min=[number]
  * sort=[property]*asc
+ * [model]?description*title*has=[search string]&title*has=[search string]&sort=title*asc&start=10&length=100
  *
  * To be used with Lagan: https://github.com/lutsen/lagan
  */
@@ -82,6 +87,18 @@ class Search {
 
 				$glue = ' '.strtoupper($rhs['order']).', ';
 				$s[] = implode( $glue, $rhs['properties'] ) . ' ' . strtoupper($rhs['order']); // Add latest order
+
+			} else if ($lhs === 'start') {
+
+				// Limit
+				$start = true;
+				$values[ ':start' ] = floatval($right);
+			
+			} elseif ($lhs === 'length') {
+
+				// Limit
+				$length = true;
+				$values[ ':length' ] = floatval($right);
 
 			// Find
 			} else if ( $lhs ) {
@@ -152,7 +169,17 @@ class Search {
 			$sort = ' ORDER BY ' . implode(', ', $s);
 		}
 
-		return \R::find( $this->type, $query.$sort, $values );
+		if ( isset($length) ) {
+			$limit .= ' LIMIT :length';
+			if ( isset($start) ) {
+				$limit .= ' OFFSET :start';
+			}
+		} else {
+			unset( $values[ ':length' ] );
+			unset( $values[ ':start' ] );
+		}
+
+		return \R::find( $this->type, $query.$sort.$limit, $values );
 
 	}
 
@@ -165,8 +192,12 @@ class Search {
 	 */
 	private function isSearchable($propertyname) {
 		foreach ($this->model->properties as $property) {
-			if ( $property['name'] == $propertyname && $property['searchable'] ) {
-				return true;
+			if ( $property['name'] == $propertyname ) {
+				if ( $property['searchable'] ) {
+					return true;
+				} else {
+					return false;
+				}
 			}
 		}
 	}
@@ -181,6 +212,10 @@ class Search {
 	private function lefthandside($input) {
 		if ($input == 'sort') { // Sorting happens after searching
 			return 'sort';
+		} else if ($input == 'start') {
+			return 'start';
+		} else if ($input == 'length') {
+			return 'length';
 		} else {
 			foreach($this->criteria as $criterion) {
 				if (substr($input, strlen($criterion)*-1) == $criterion) {
