@@ -67,7 +67,7 @@ class Search {
 	 *
 	 * @param array[] $params Request parameters array
 	 *
-	 * @return array[] Array with ['reslut'] of Redbean beans matching the search criteria, ['total'] beans for the query, total ['pages'], current ['page'], ['offset'], ['limit'], ['search'] url part and ['section'] url part.
+	 * @return array[] Array with ['reslut'] of Redbean beans matching the search criteria, ['total'] beans for the query, total ['pages'], current ['page'], ['offset'], ['limit'], ['query'] url part and ['section'] url part.
 	 */
 	public function find($params) {
 
