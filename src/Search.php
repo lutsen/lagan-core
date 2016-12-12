@@ -13,17 +13,17 @@ namespace Lagan;
  * Contains: *has
  * Equal to: *is
  * Sort: sort
- * Limit: length
- * Offset: start
+ * Limit: limit
+ * Offset: offset
  *
- * start only works if length is defined too
+ * offset only works if limit is defined too
  *
  * Query structure examples:
  * [model]?*has=[search string] :				Searches all searchable properties of a model
  * [model]?[property]*has=[search string] :		Searches single property of a model
  * [model]?[property]*min=[number]
  * sort=[property]*asc
- * [model]?description*title*has=[search string]&title*has=[search string]&sort=title*asc&start=10&length=100
+ * [model]?description*title*has=[search string]&title*has=[search string]&sort=title*asc&offset=10&limit=100
  *
  * To be used with Lagan: https://github.com/lutsen/lagan
  */
@@ -67,7 +67,7 @@ class Search {
 	 *
 	 * @param array[] $params Request parameters array
 	 *
-	 * @return bean[] Array of Redbean beans matching the search criteria
+	 * @return array[] Array with ['reslut'] of Redbean beans matching the search criteria, ['total'] beans for the query, total ['pages'], current ['page'], ['offset'], ['limit'], ['search'] url part and ['section'] url part.
 	 */
 	public function find($params) {
 
@@ -88,17 +88,17 @@ class Search {
 				$glue = ' '.strtoupper($rhs['order']).', ';
 				$s[] = implode( $glue, $rhs['properties'] ) . ' ' . strtoupper($rhs['order']); // Add latest order
 
-			} else if ($lhs === 'start') {
+			} else if ($lhs === 'offset') {
 
 				// Limit
-				$start = true;
-				$values[ ':start' ] = floatval($right);
+				$offset = floatval($right);
+				$values[ ':offset' ] = floatval($right);
 			
-			} elseif ($lhs === 'length') {
+			} elseif ($lhs === 'limit') {
 
 				// Limit
-				$length = true;
-				$values[ ':length' ] = floatval($right);
+				$limit = floatval($right);
+				$values[ ':limit' ] = floatval($right);
 
 			// Find
 			} else if ( $lhs ) {
@@ -138,6 +138,8 @@ class Search {
 
 						}
 
+					} else {
+						throw new \Exception($v . ' is not searchable.');
 					} // End isSearchable($v)
 
 				} // End foreach $lhs['properties']
@@ -155,7 +157,8 @@ class Search {
 		// Query
 
 		// Implode array to create nice '( #query ) AND ( #query )'
-		if (count($q) > 1) {
+		$query = '';
+		if ( count($q) > 1 ) {
 			$query = '(' . implode(') AND (', $q) . ')';
 		} else if (count($q) > 0) {
 			$query = $q[0];
@@ -163,21 +166,58 @@ class Search {
 
 		// Implode different sort arrays
 		$sort = '';
-		if (count($s) > 0) {
+		if ( count($s) > 0 ) {
 			$sort = ' ORDER BY ' . implode(', ', $s);
 		}
 
-		if ( isset($length) ) {
-			$limit .= ' LIMIT :length';
-			if ( isset($start) ) {
-				$limit .= ' OFFSET :start';
+		$part = '';
+		if ( isset($limit) ) {
+			$part = ' LIMIT :limit';
+			if ( isset($offset) ) {
+				$part .= ' OFFSET :offset';
 			}
 		} else {
-			unset( $values[ ':length' ] );
-			unset( $values[ ':start' ] );
+			unset( $values[ ':limit' ] );
+			unset( $values[ ':offset' ] );
 		}
 
-		return \R::find( $this->type, $query.$sort.$limit, $values );
+		// Search result
+		$return['result'] = \R::find( $this->type, $query.$sort.$part, $values );
+
+		// Total number of results for this query
+		unset( $values[ ':limit' ] );
+		unset( $values[ ':offset' ] );
+		$return['total'] = \R::count( $this->type, $query.$sort, $values );
+
+		// Pages
+		if ( $limit ) {
+			$return['limit'] = $limit;
+			// Total pages
+			$return['pages'] = ceil( $return['total'] / $limit );
+			if ( $offset ) {
+				$return['offset'] = $offset;
+				// Current page
+				$return['page'] = ceil( $offset / $limit );
+			}
+		}
+
+		// Seperate search request from section request
+		foreach ($params as $left => $right) {
+			if ( $left == 'limit' || $left == 'offset' ) {
+				$section .= '&'.$left.'='.$right;
+			} else {
+				$search .= '&'.$left.'='.$right;
+			}
+		}
+
+		if ( $section ) {
+			$return['section'] = substr( $section, 1);
+		}
+		if ( $search ) {
+			$return['query'] = substr( $search, 1);
+		}
+
+		return $return;
 
 	}
 
@@ -210,10 +250,10 @@ class Search {
 	private function lefthandside($input) {
 		if ($input == 'sort') { // Sorting happens after searching
 			return 'sort';
-		} else if ($input == 'start') {
-			return 'start';
-		} else if ($input == 'length') {
-			return 'length';
+		} else if ($input == 'offset') {
+			return 'offset';
+		} else if ($input == 'limit') {
+			return 'limit';
 		} else {
 			foreach($this->criteria as $criterion) {
 				if (substr($input, strlen($criterion)*-1) == $criterion) {
@@ -221,10 +261,18 @@ class Search {
 					if (strlen($input) > strlen($criterion)) {
 						$return['properties'] = explode('*', substr($input, 0, strlen($criterion)*-1)); // Array of properties
 					} else {
-						// If no properties are defined, return all properties
+
+						// If no properties are defined, return all searchable properties
 						foreach ($this->model->properties as $property) {
-							$return['properties'][] = $property['name'];
+							if ($property['searchable']) {
+								$return['properties'][] = $property['name'];
+							}
 						}
+
+						if ( count($return['properties']) == 0 ) {
+							throw new \Exception('This model has no searchable properties.');
+						}
+
 					}
 					return $return;
 				}
