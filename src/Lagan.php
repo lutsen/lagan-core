@@ -60,7 +60,7 @@ class Lagan {
 			// Define property controller
 			$c = new $property['type'];
 
-			// New input fot the property
+			// New input for the property
 			if ( isset( $data[ $property['name'] ] ) || $_FILES[ $property['name'] ]['size'] > 0 ) {
 
 				// Check if specific set property type method exists
