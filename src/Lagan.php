@@ -61,7 +61,7 @@ class Lagan {
 			$c = new $property['type'];
 
 			// New input for the property
-			if ( isset( $data[ $property['name'] ] ) || $_FILES[ $property['name'] ]['size'] > 0 ) {
+			if ( isset( $data[ $property['name'] ] ) || ( isset( $_FILES[ $property['name'] ] ) && $_FILES[ $property['name'] ]['size'] > 0 ) ) {
 
 				// Check if specific set property type method exists
 				if ( method_exists( $c, 'set' ) ) {
@@ -99,8 +99,10 @@ class Lagan {
 			}
 
 			// Check if proerty is required
-			if ( $property['required'] && !$hasvalue ) {
-				throw new \Exception('Validation error. '.$property['description'].' is required.');
+			if ( isset( $property['required'] ) ) {
+				if ( $property['required'] && !$hasvalue ) {
+					throw new \Exception('Validation error. '.$property['description'].' is required.');
+				}
 			}
 
 			// Results from methods that return boolean values are not stored.
