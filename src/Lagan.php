@@ -84,7 +84,7 @@ class Lagan {
 			} else {
 
 				// Check if property already has value for required validation
-				if ( $property['required'] ) {
+				if ( isset( $property['required'] ) ) {
 
 					if ( method_exists( $c, 'read' ) && $c->read( $bean, $property ) ) {
 						$hasvalue = true;
