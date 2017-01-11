@@ -98,7 +98,7 @@ class Lagan {
 
 			}
 
-			// Check if proerty is required
+			// Check if property is required
 			if ( isset( $property['required'] ) ) {
 				if ( $property['required'] && !$hasvalue ) {
 					throw new \Exception('Validation error. '.$property['description'].' is required.');
