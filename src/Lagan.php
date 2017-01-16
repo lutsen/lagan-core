@@ -22,9 +22,6 @@ class Lagan {
 	/** @var array $properties An array defining the different content data-fields of the model. Each property is an array with at least the following keys: name, description, type, input. There can be other optional keys. */
 	public $properties;
 
-	/** @var array $rules An array of validation rules, based on the Valitron library. */
-	public $rules;
-
 	/**
 	 * Dispenses a Redbean bean ans sets it's creation date.
 	 *
@@ -61,7 +58,13 @@ class Lagan {
 			$c = new $property['type'];
 
 			// New input for the property
-			if ( isset( $data[ $property['name'] ] ) || ( isset( $_FILES[ $property['name'] ] ) && $_FILES[ $property['name'] ]['size'] > 0 ) ) {
+			if (
+				isset( $data[ $property['name'] ] )
+				|| 
+				( isset( $_FILES[ $property['name'] ] ) && $_FILES[ $property['name'] ]['size'] > 0 )
+				||
+				$property['autovalue'] == true
+			) {
 
 				// Check if specific set property type method exists
 				if ( method_exists( $c, 'set' ) ) {
@@ -257,7 +260,7 @@ class Lagan {
 	 * Properties can have optional values, for example relation and file_select.
 	 * This method, if appropriate, queries properties for optional values, and populates them with them.
 	 * Searches bean by an unique property, like an id or a slug.
-	 * If $value is not set, nu bean is supplied to the property options method.
+	 * If $value is not set, no bean is supplied to the property options method.
 	 *
 	 * @param mixed		$value		The value of the property
 	 * @param string	$property	The name of the property, defaults to id
