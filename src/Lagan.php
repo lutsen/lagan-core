@@ -111,6 +111,15 @@ class Lagan {
 			// Results from methods that return boolean values are not stored.
 			// Many-to-many relations for example are stored in a seperate table.
 			if ( !is_bool($value) ) {
+
+				// Check if property value is unique
+				if ( isset( $property['unique'] ) ) {
+					$duplicate = \R::findOne( $this->type, $property['name'].' = :val ', [ ':val' => $value ] );
+					if ( $duplicate && $duplicate->id != $bean->id ) {
+						throw new \Exception('Validation error. '.$property['description'].' should be unique.');
+					}
+				}
+
 				$bean->{ $property['name'] } = $value;
 			}
 
